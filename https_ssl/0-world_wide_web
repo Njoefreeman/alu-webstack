@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Script to get information about subdomains
+# This script audits DNS records for specified subdomains of a domain.
 
-get_subdomain_info() {
-    domain="$1"
-    subdomain="$2"
+function audit_subdomain {
+    local domain="$1"
+    local subdomain="$2"
 
     if [ -z "$subdomain" ]; then
         subdomains=("www" "lb-01" "web-01" "web-02")
@@ -12,9 +12,10 @@ get_subdomain_info() {
     fi
 
     for sub in "${subdomains[@]}"; do
-        answer=$(dig "$sub.$domain" +short)
-        record_type=$(dig "$sub.$domain" | awk '/ANSWER SECTION/{getline; print $4}')
-        echo "The subdomain $sub is a $record_type record and points to $answer"
+        record_type=$(dig "$sub.$domain" | awk '/ANSWER SECTION/ { getline; print $4 }')
+        destination=$(dig "$sub.$domain" | awk '/ANSWER SECTION/ { getline; print $5 }')
+        echo "The subdomain $sub is a $record_type record and points to $destination"
     done
 }
-get_subdomain_info "$1" "$2"
+
+audit_subdomain "$1" "$2"
